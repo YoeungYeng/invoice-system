@@ -36,4 +36,6 @@ class StoreCategoryRequest extends FormRequest
             'errors' => $validator->errors(),
         ], 422));
     }
+
+    
 }
