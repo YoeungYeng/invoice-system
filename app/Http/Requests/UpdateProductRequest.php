@@ -2,7 +2,12 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Laravel\Facades\Image;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -11,7 +16,7 @@ class UpdateProductRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +27,44 @@ class UpdateProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            "name" => "sometimes|string|unique:products,name",
+            "stock_qty" => "sometimes|integer|min:1",
+            "price" => "sometimes|numeric|between:0,9999.99",
+            "discount" => "sometimes|numeric|between:0,9999.99",
+            "image" => "sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048",
+            "category_id" => "sometimes|exists:categories,id"
         ];
+    }
+
+    public function failedValidation(Validator $validator): void
+    {
+        throw new HttpResponseException(response()->json([
+            'status' => 'error',
+            'message' => 'Validation failed',
+            'errors' => $validator->errors(),
+        ], 422));
+    }
+
+
+    public function uploadImage($image): ?string
+    {
+        if ($image && $image->isValid()) {
+            // Generate a unique filename
+            $filename = Str::uuid() . '.' . $image->getClientOriginalExtension();
+
+            // Read and crop/resize the image using Intervention
+            $processedImage = Image::read($image)
+                ->resize(300, 300) // Resize to 300x300 pixels
+                // ->crop(300, 300, 50, 50) // Or optionally crop
+                ->encodeByExtension($image->getClientOriginalExtension(), quality: 80);
+
+            // Save to public disk
+            Storage::disk('public')->put("images/{$filename}", $processedImage);
+
+            // Return the public URL
+            return asset("storage/images/{$filename}");
+        }
+
+        return null;
     }
 }

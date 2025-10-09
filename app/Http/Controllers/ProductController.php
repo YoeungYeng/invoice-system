@@ -48,20 +48,63 @@ class ProductController extends Controller
         //
     }
 
-    
+
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProductRequest $request, Product $product)
+    public function update(UpdateProductRequest $request, $id)
     {
-        //
+        // find product to updated
+        $product = Product::find($id);
+        // check if product not found
+        if (!$product) {
+            return response()->json([
+                "status" => 404,
+                "message" => "Product not found"
+            ], 404);
+        }
+
+        // check validation
+        $validated = $request->validated();
+
+        if ($request->hasFile('image')) {
+            // delete old image first if you store images in filesystem
+            if ($product->image && file_exists(public_path($product->image))) {
+                unlink(public_path($product->image));
+            }
+
+            // Assuming uploadImage() returns a path or filename
+            $validated['image'] = $request->uploadImage($request->file('image'));
+        }
+
+        // update product in this
+        $product->update($validated);
+
+        return response()->json([
+            "status" => 201,
+            "message" => "product is updated",
+            "data" => $product
+        ], 201);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    public function destroy($id)
     {
         //
+        $product = Product::find($id);
+        if (!$product) {
+            return response()->json([
+                "status" => 404,
+                "message" => "Product not found"
+            ], 404);
+        }
+
+        $product->delete();
+        return response()->json([
+            "status" => 201,
+            "message" => "Product is deleted"
+        ], 201);
     }
 }
