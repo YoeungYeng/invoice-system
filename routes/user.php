@@ -1,10 +1,6 @@
 <?php
 
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\ProductController;
+use App\Http\Controllers\client\CategoryController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/category', [CategoryController::class, "index"]);
-Route::get("/product", [ProductController::class, "index"]);
-
-// 
+Route::get('/getcategory', [CategoryController::class, "getAllCategory"]);
