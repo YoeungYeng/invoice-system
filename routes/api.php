@@ -1,6 +1,6 @@
 <?php
 
 // for admin
-require "admin.php";
+require_once __DIR__ ."/admin.php";
 // for user
-require "user.php";
+require_once __DIR__ . "/user.php";
