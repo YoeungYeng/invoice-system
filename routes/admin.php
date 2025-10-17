@@ -1,8 +1,12 @@
 <?php
 
+use App\Http\Controllers\admin\AuthenticationController;
 use App\Http\Controllers\admin\CategoryController;
 use App\Http\Controllers\admin\ProductController;
 use Illuminate\Support\Facades\Route;
 
-Route::apiResource("/category", CategoryController::class);
-Route::apiResource("/product", ProductController::class);
+Route::post('/loginadmin', [AuthenticationController::class, 'login']);
+Route::middleware(['jwt.auth', 'checkAdmin'])->group(function () {
+    Route::apiResource("/category", CategoryController::class);
+    Route::apiResource("/product", ProductController::class);
+});
